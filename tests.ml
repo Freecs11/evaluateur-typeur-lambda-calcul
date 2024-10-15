@@ -28,11 +28,13 @@ let two = Abs ("f", Abs ("x", App (Var "f", App (Var "f", Var "x"))))  (* 2: λf
 let three = Abs ("f", Abs ("x", App (Var "f", App (Var "f", App (Var "f", Var "x")))))  (* 3: λf. λx. f (f (f x)) *)
 
 (* Arithmetic operations *)
-let succ_term = Abs ("n", Abs ("f", Abs ("x", App (Var "f", App (App (Var "n", Var "f"), Var "x")))))  (* Successor function *)
 
-let add_term = Abs ("m", Abs ("n", Abs ("f", Abs ("x", App (App (Var "m", Var "f"), App (App (Var "n", Var "f"), Var "x"))))))  (* Addition function *)
+(* successor *)
+let succ_term = Abs ("n", Abs ("f", Abs ("x", App (Var "f", App (App (Var "n", Var "f"), Var "x"))))) (* succ: λn. λf. λx. f (n f x) *)
 
-let mul_term = Abs ("m", Abs ("n", Abs ("f", App (Var "m", App (Var "n", Var "f")))))  (* Multiplication function *)
+(* addition  add = λnmfe.n f (m f e) (addition) *)
+let add_term =  Abs ("m", Abs ("n", Abs ("f", Abs ("x", App (App (Var "m", Var "f"), App (App (Var "n", Var "f"), Var "x"))))))
+
 
 
 (* Test ltr_cbv_step function *)
@@ -51,6 +53,7 @@ let test_ltr_cbv_step _ =
 let test_ltr_cbv_norm _ =
   let term = App (Abs ("x", App (Var "x", Var "x")), Abs ("y", Var "y")) in
   let result = ltr_cbv_norm term in
+  print_endline ("Term: " ^ print_term term);
   assert_equal (Abs ("y", Var "y")) result
 
 (* Test function *)
@@ -60,8 +63,14 @@ let test_ltr_cbv_norm_with_timeout _ctxt =
 
   let result_divergent = ltr_cbv_norm_with_timeout term_divergent 5 in
   let result_convergent = ltr_cbv_norm_with_timeout term_convergent 5 in
-
+  
+  (* the divergent term should return None *)
+  print_endline ("Divergent term: " ^ print_term term_divergent); 
   assert_equal None result_divergent;
+  
+  print_endline ("Convergent term: " ^ print_term term_convergent);
+  print_endline ("Result: " ^ print_term (Option.get result_convergent));
+
   match result_convergent with
   | Some term ->
       assert_bool
@@ -70,25 +79,100 @@ let test_ltr_cbv_norm_with_timeout _ctxt =
   | None -> assert_failure "Convergent term should not return None"
 
 
+
 (* Test combinators *)
+
+(* Test I normalisation *)
+let test_i_term_normalization _ctxt =
+  let result = ltr_cbv_norm i_term in
+  let expected = i_term in
+  print_endline ("I: " ^ print_term i_term ^ "  ::: =>  " ^ print_term result);
+  assert_bool "I did not normalize to itself" (alpha_equal result expected)
 
 
 (* Test S I I under CbV *)
 let test_s_i_i_normalization_cbv _ctxt =
   let s_i_i_term_normalisation = ltr_cbv_norm s_i_i_term in
-  let s_i_i_term_norm_result = Abs ("z", App (App (i_term, Var "z"), App (i_term, Var "z"))) in
-  print_endline ("S I I: " ^ print_term s_i_i_term);
-  print_endline ("Result: " ^ print_term s_i_i_term_normalisation);
+  let s_i_i_term_norm_result =  Abs ("z", App (Var "z", Var "z")) in
+  print_endline ("S I I: " ^ print_term s_i_i_term ^ "  ::: =>  " ^ print_term s_i_i_term_normalisation);
+  print_endline ("S I I Expected: " ^ print_term s_i_i_term_norm_result);
   assert_bool
     "S I I did not normalize to the expected result under Call-by-Value"
     (alpha_equal s_i_i_term_normalisation s_i_i_term_norm_result)
   
+(* Test of delta normalisation *)
+let test_delta_term_normalization _ctxt =
+  let result = ltr_cbv_norm delta_term in
+  let expected = delta_term in
+  print_endline ("δ: " ^ print_term delta_term);
+  assert_bool "δ did not normalize to itself" (alpha_equal result expected)
+
+(* Test of omega divergence , infinitely loops with ltr_cbv_norm *)
+let test_omega_term_divergence _ctxt =
+  let result = ltr_cbv_norm_with_timeout omega_term 100 in  
+  print_endline ("Ω: " ^ print_term omega_term);
+  assert_bool "Ω should not normalize (diverges)" (result = None)
+
+(* Test of S K K normalisation , cbv so it results in fun z -> (K z) (K z) *)
+let test_s_k_k_term_normalization _ctxt =
+  let result = ltr_cbv_norm s_k_k_term in
+  (* TODO: check if cbv is expected to be strict like this *)
+  let expected =  Abs ("z", App (App (k_term, Var "z"), App (k_term, Var "z"))) in
+  print_endline ("S K K: " ^ print_term s_k_k_term ^ "  ::: =>  " ^ print_term result);
+  assert_bool "S K K did not normalize to I" (alpha_equal result expected)
+
+
+(* Test of zero normalisation , remains zero *)
+let test_zero_term_normalization _ctxt =
+  let result = ltr_cbv_norm zero in
+  let expected = zero in
+  print_endline ("0: " ^ print_term zero ^ "  ::: =>  " ^ print_term result);
+  assert_bool "0 did not normalize to itself" (alpha_equal result expected)
+
+
+(* Test for succ 0 normalization *)
+let test_succ_zero_normalization _ctxt =
+  let succ_zero_term = App (succ_term, zero) in
+  (* Simplify the term *)
+  let simplified_result = ltr_cbv_norm succ_zero_term in
+  let expected = one in
+  (* Debugging output *)
+  print_endline ("Expected (1): " ^ print_term expected);
+  print_endline ("Result after simplification: " ^ print_term simplified_result);
+  
+  (* Assert the result matches expected (Church numeral for 1) *)
+  assert_bool "succ 0 did not normalize to 1" (alpha_equal simplified_result expected)
+
+
+(* A revoir et corriger 
+TODO: Fix the simplification of normalization ( and check if it's even necessary to simplify the result) *)
+
+(* Test for addition 1 1 normalization *)
+let test_addition_1_1_normalization _ctxt =
+  let addition_1_1_term = App (App (add_term, one), one) in
+  (* Simplify the term *)
+  let simplified_result = ltr_cbv_norm addition_1_1_term in
+  let expected = two in
+  (* Debugging output *)
+  print_endline ("Expected (2): " ^ print_term expected ^ "Result after simplification: " ^ print_term simplified_result);
+  
+  (* Assert the result matches expected (Church numeral for 2) *)
+  assert_bool "addition 1 1 did not normalize to 2" (alpha_equal simplified_result expected)
+
 
 
 (* Test suite *)
 let normalization_tests =
   "Normalization Tests" >::: [
     "test_s_i_i_normalization" >:: test_s_i_i_normalization_cbv;
+    "test_delta_term_normalization" >:: test_delta_term_normalization;
+    "test_i_term_normalization" >:: test_i_term_normalization;
+    "test_omega_term_divergence" >:: test_omega_term_divergence;
+    "test_s_k_k_term_normalization" >:: test_s_k_k_term_normalization;
+    "test_zero_term_normalization" >:: test_zero_term_normalization;
+    "test_succ_zero_normalization" >:: test_succ_zero_normalization;
+    
+    (* "test_addition_1_1_normalization" >:: test_addition_1_1_normalization; *)
   ]
 
 
@@ -106,7 +190,7 @@ let ltr_cbv_tests =
 (* Combine the test suites *)
 let combined_suites =
   "All Tests" >::: [
-    (* ltr_cbv_tests; *)
+    ltr_cbv_tests;
     normalization_tests;
   ]
 
