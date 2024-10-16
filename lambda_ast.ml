@@ -57,6 +57,7 @@ let rec alphaconv (t : pterm) : pterm =
 
 
 (* Alpha-equivalence Equivalence structurelle des termes lambda *)
+(* partagé avec fall wally*)
 let alpha_equal t1 t2 =
   let rec alpha_eq env t1 t2 =
     match t1, t2 with

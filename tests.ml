@@ -113,11 +113,11 @@ let test_omega_term_divergence _ctxt =
   print_endline ("Ω: " ^ print_term omega_term);
   assert_bool "Ω should not normalize (diverges)" (result = None)
 
-(* Test of S K K normalisation , cbv so it results in fun z -> (K z) (K z) *)
+(* Test of S K K normalisation *)
 let test_s_k_k_term_normalization _ctxt =
   let result = ltr_cbv_norm s_k_k_term in
   (* TODO: check if cbv is expected to be strict like this *)
-  let expected =  Abs ("z", App (App (k_term, Var "z"), App (k_term, Var "z"))) in
+  let expected = i_term in
   print_endline ("S K K: " ^ print_term s_k_k_term ^ "  ::: =>  " ^ print_term result);
   assert_bool "S K K did not normalize to I" (alpha_equal result expected)
 
@@ -144,17 +144,16 @@ let test_succ_zero_normalization _ctxt =
   assert_bool "succ 0 did not normalize to 1" (alpha_equal simplified_result expected)
 
 
-(* A revoir et corriger 
-TODO: Fix the simplification of normalization ( and check if it's even necessary to simplify the result) *)
-
 (* Test for addition 1 1 normalization *)
 let test_addition_1_1_normalization _ctxt =
   let addition_1_1_term = App (App (add_term, one), one) in
   (* Simplify the term *)
   let simplified_result = ltr_cbv_norm addition_1_1_term in
   let expected = two in
-  (* Debugging output *)
-  print_endline ("Expected (2): " ^ print_term expected ^ "Result after simplification: " ^ print_term simplified_result);
+  let result_integer = churchto_int simplified_result in
+  print_endline ("Addition 1 1 Integer :" ^ string_of_int result_integer);
+  print_endline ("Expected (2): " ^ print_term expected ) ;
+  print_endline ("Result after simplification: (2) " ^ print_term simplified_result);
   
   (* Assert the result matches expected (Church numeral for 2) *)
   assert_bool "addition 1 1 did not normalize to 2" (alpha_equal simplified_result expected)
@@ -172,7 +171,7 @@ let normalization_tests =
     "test_zero_term_normalization" >:: test_zero_term_normalization;
     "test_succ_zero_normalization" >:: test_succ_zero_normalization;
     
-    (* "test_addition_1_1_normalization" >:: test_addition_1_1_normalization; *)
+    "test_addition_1_1_normalization" >:: test_addition_1_1_normalization;
   ]
 
 
@@ -183,7 +182,6 @@ let ltr_cbv_tests =
   "LtR-CbV Tests" >::: [
     "test_ltr_cbv_step" >:: test_ltr_cbv_step;
     "test_ltr_cbv_norm" >:: test_ltr_cbv_norm;
-    (* Uncomment if you want to test with timeout *)
     "test_ltr_cbv_norm_with_timeout" >:: test_ltr_cbv_norm_with_timeout;
   ]
 
