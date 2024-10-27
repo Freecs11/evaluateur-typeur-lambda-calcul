@@ -5,7 +5,7 @@ EXEC = main
 BUILD_DIR = bin
 
 # Fichiers sources
-SRC = lambda_ast.ml reduction.ml typing_ast.ml typing.ml main.ml
+SRC = src/lambda_ast.ml src/reduction.ml src/typing_ast.ml src/typing.ml src/main.ml src/terms.ml
 
 # Fichiers objets générés (extension .cmo)
 OBJ = $(SRC:.ml=.cmo)
@@ -33,14 +33,22 @@ $(BUILD_DIR)/$(EXEC): $(OBJ)
 	$(OCAMLC) $(OCAMLFLAGS) -c $<
 
 # Ajouter une cible pour les tests avec OUnit2
-test: all
-	ocamlfind ocamlc $(OCAMLFLAGS) $(LIBS) -o test_program lambda_ast.ml reduction.ml tests.ml
-	./test_program
+test_reductions: all
+	ocamlfind ocamlc $(OCAMLFLAGS) $(LIBS) -o bin/test_program src/lambda_ast.ml src/reduction.ml src/terms.ml tests/tests_reductions.ml
+	./bin/test_program
 	
+test_typing: all
+	ocamlfind ocamlc $(OCAMLFLAGS) $(LIBS) -o bin/test_program src/lambda_ast.ml src/typing_ast.ml src/typing.ml src/terms.ml tests/tests_typing.ml
+	./bin/test_program
+
+retest_reductions: clean all test_reductions
+retest_typing: clean all test_typing
+retest : clean all test_reductions test_typing
+
 
 # Nettoyer les fichiers de test
 clean: 
-	rm -f *.cmi *.cmo *.o test_program *.log *.cache
+	rm -f *.cmo *.cmi src/*.cmo src/*.cmi tests/*.cmo tests/*.cmi *.log *.cache 
 
 # Clean complet : supprime également les fichiers binaires
 fclean: clean

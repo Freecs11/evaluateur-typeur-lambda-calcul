@@ -1,41 +1,7 @@
 open OUnit2
 open Lambda_ast
 open Reduction
-
-(* Lambda Terms *)
-let i_term = Abs ("x", Var "x")  (* I: λx. x *)
-
-let delta_term = Abs ("x", App (Var "x", Var "x"))  (* δ: λx. x x *)
-
-let omega_term = App (delta_term, delta_term)  (* Ω: (λx. x x) (λx. x x), diverges *)
-
-let k_term = Abs ("x", Abs ("y", Var "x"))  (* K: λx. λy. x *)
-
-let s_term = Abs ("x", Abs ("y", Abs ("z", App (App (Var "x", Var "z"), App (Var "y", Var "z")))))  (* S: λx. λy. λz. x z (y z) *)
-
-let s_k_k_term = App (App (s_term, k_term), k_term)  (* S K K simplifies to I *)
-
-let s_i_i_term = App (App (s_term, i_term), i_term)  (* S I I simplifies to I *)
-
-
-(* Church Numbers *)
-let zero = Abs ("f", Abs ("x", Var "x"))  (* 0: λf. λx. x *)
-
-let one = Abs ("f", Abs ("x", App (Var "f", Var "x")))  (* 1: λf. λx. f x *)
-
-let two = Abs ("f", Abs ("x", App (Var "f", App (Var "f", Var "x"))))  (* 2: λf. λx. f (f x) *)
-
-let three = Abs ("f", Abs ("x", App (Var "f", App (Var "f", App (Var "f", Var "x")))))  (* 3: λf. λx. f (f (f x)) *)
-
-(* Arithmetic operations *)
-
-(* successor *)
-let succ_term = Abs ("n", Abs ("f", Abs ("x", App (Var "f", App (App (Var "n", Var "f"), Var "x"))))) (* succ: λn. λf. λx. f (n f x) *)
-
-(* addition  add = λnmfe.n f (m f e) (addition) *)
-let add_term =  Abs ("m", Abs ("n", Abs ("f", Abs ("x", App (App (Var "m", Var "f"), App (App (Var "n", Var "f"), Var "x"))))))
-
-
+open Terms
 
 (* Test ltr_cbv_step function *)
 let test_ltr_cbv_step _ =
@@ -58,7 +24,7 @@ let test_ltr_cbv_norm _ =
 
 (* Test function *)
 let test_ltr_cbv_norm_with_timeout _ctxt =
-  let term_divergent = App (Abs ("x", App (Var "x", Var "x")), Abs ("x", App (Var "x", Var "x"))) in
+  let term_divergent = omega_term in
   let term_convergent = App (Abs ("x", Var "x"), Abs ("y", Var "y")) in
 
   let result_divergent = ltr_cbv_norm_with_timeout term_divergent 5 in
@@ -69,15 +35,8 @@ let test_ltr_cbv_norm_with_timeout _ctxt =
   assert_equal None result_divergent;
   
   print_endline ("Convergent term: " ^ print_term term_convergent);
-  print_endline ("Result: " ^ print_term (Option.get result_convergent));
-
-  match result_convergent with
-  | Some term ->
-      assert_bool
-        "Convergent term did not normalize to expected value"
-        (alpha_equal term (Abs ("y", Var "y")))
-  | None -> assert_failure "Convergent term should not return None"
-
+  print_endline ("Result of convergent term: " ^ print_term (Option.get result_convergent));
+  assert_equal (Some (Abs ("y", Var "y"))) result_convergent
 
 
 (* Test combinators *)
