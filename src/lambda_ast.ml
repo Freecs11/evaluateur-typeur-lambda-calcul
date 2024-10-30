@@ -12,6 +12,8 @@ let rec print_term (t : pterm) : string =
 
 let compteur_var : int ref = ref 0
 
+(* test pushing to both gh and gl *)
+
 let nouvelle_var () : string =
   compteur_var := !compteur_var + 1;
   "X" ^ (string_of_int !compteur_var)
