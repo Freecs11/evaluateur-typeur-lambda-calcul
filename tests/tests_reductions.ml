@@ -8,12 +8,21 @@ let test_ltr_cbv_step _ =
   let term1 = App (Abs ("x", Var "x"), Abs ("y", Var "y")) in (* (λx. x) (λy. y) *)
   let term2 = App (Abs ("x", Var "x"), Var "z") in (* (λx. x) z *)
   let term3 = App (Abs ("x", Var "x"), Abs ("y", App (Var "x", Var "y"))) in (* (λx. x) (λy. x y) *)
+  let term4 = Var "x" in (* x *) 
   let result1 = ltr_cbv_step term1 in
   let result2 = ltr_cbv_step term2 in
   let result3 = ltr_cbv_step term3 in
+  let result4 = ltr_cbv_step term4 in
+
+  (*print_endline ("Term1 res in test_ltr_cbv_step: " ^ print_term (Option.get result1));
+  print_endline ("Term2 res in test_ltr_cbv_step: " ^ print_term (Option.get result2));
+  print_endline ("Term3 res in test_ltr_cbv_step: " ^ print_term (Option.get result3));
+   *)
+
   assert_equal (Some (Abs ("y", Var "y"))) result1;
-  assert_equal None result2; (* z is a variable *)
-  assert_equal (Some (Abs ("y", App (Var "x", Var "y"))) ) result3
+  assert_equal (Some (Var "z")) result2;
+  assert_equal (Some (Abs ("y", App (Var "x", Var "y"))) ) result3;
+  assert_equal None result4  (* variable, should return None *)
 
 (* Test ltr_cbv_norm function *)
 let test_ltr_cbv_norm _ =

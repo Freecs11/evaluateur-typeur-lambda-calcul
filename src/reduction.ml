@@ -1,9 +1,12 @@
 open Lambda_ast
 
 (* Fonction pour vérifier si un terme est une valeur *)
-let is_value (t : pterm) : bool =
+let rec is_value (t : pterm) : bool =
   match t with
-  | Abs (_, _) -> true 
+  | Abs (_, _) -> true
+  | Var _ -> true
+  | App (Var _, t2) -> is_value t2
+  (* | Int _ -> true  *)
   | _ -> false  
 
 

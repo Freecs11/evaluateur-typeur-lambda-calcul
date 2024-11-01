@@ -2,12 +2,21 @@ type pterm =
   | Var of string
   | App of pterm * pterm
   | Abs of string * pterm
+  (* Partie 4 *)
+  (* | Int of int
+  | Add of pterm * pterm
+  | Sub of pterm * pterm *)
+
 
 let rec print_term (t : pterm) : string =
   match t with
   | Var x -> x
   | App (t1, t2) -> "(" ^ (print_term t1) ^ " " ^ (print_term t2) ^ ")"
   | Abs (x, t) -> "(fun " ^ x ^ " -> " ^ (print_term t) ^ ")"
+  (* | Int n -> string_of_int n
+  | Add (t1, t2) -> "(" ^ (print_term t1) ^ " + " ^ (print_term t2) ^ ")"
+  | Sub (t1, t2) -> "(" ^ (print_term t1) ^ " - " ^ (print_term t2) ^ ")" *)
+
 
 
 let compteur_var : int ref = ref 0
@@ -25,6 +34,10 @@ let rec free_vars (t: pterm) : string list =
   | Var x -> [x]
   | App (t1, t2) -> (free_vars t1) @ (free_vars t2)
   | Abs (x, t) -> List.filter (fun y -> y <> x) (free_vars t)
+  (* | Int _ -> []
+  | Add (t1, t2) -> (free_vars t1) @ (free_vars t2)
+  | Sub (t1, t2) -> (free_vars t1) @ (free_vars t2) *)
+
 
 
 (* Substitution & logging pour les tests*)
@@ -44,8 +57,9 @@ let rec substitution (x : string) (n: pterm) (t : pterm) : pterm =
         let t' = substitution y (Var new_var) t in  (* Alpha-conversion *)
         Abs (new_var, substitution x n t')
       else Abs (y, substitution x n t)
-
-
+  (* | Int _ -> t
+  | Add (t1, t2) -> Add (substitution x n t1, substitution x n t2)
+  | Sub (t1, t2) -> Sub (substitution x n t1, substitution x n t2) *)
 
 
 (* Alpha-conversion: renomme les variables liées pour éviter les conflits *)
@@ -56,6 +70,9 @@ let rec alphaconv (t : pterm) : pterm =
   | Abs (x, t) ->
       let new_var = nouvelle_var () in
       Abs (new_var, substitution x (Var new_var) (alphaconv t))
+  (* | Int _ -> t
+  | Add (t1, t2) -> Add (alphaconv t1, alphaconv t2)
+  | Sub (t1, t2) -> Sub (alphaconv t1, alphaconv t2) *)
 
 
 (* Alpha-equivalence Equivalence structurelle des termes lambda *)
@@ -71,6 +88,11 @@ let alpha_equal t1 t2 =
         alpha_eq new_env t1' t2'
     | App (t1a, t1b), App (t2a, t2b) ->
         alpha_eq env t1a t2a && alpha_eq env t1b t2b
+    (* | Int n1, Int n2 -> n1 = n2
+    | Add (t1a, t1b), Add (t2a, t2b) ->
+        alpha_eq env t1a t2a && alpha_eq env t1b t2b
+    | Sub (t1a, t1b), Sub (t2a, t2b) ->
+        alpha_eq env t1a t2a && alpha_eq env t1b t2b *)
     | _ -> false
   in
   alpha_eq [] t1 t2
