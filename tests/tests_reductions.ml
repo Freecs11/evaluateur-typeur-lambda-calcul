@@ -101,30 +101,41 @@ let test_zero_term_normalization _ctxt =
 (* Test for succ 0 normalization *)
 let test_succ_zero_normalization _ctxt =
   let succ_zero_term = App (succ_term, zero) in
-  (* Simplify the term *)
-  let simplified_result = ltr_cbv_norm succ_zero_term in
+  let result = ltr_cbv_norm succ_zero_term in
   let expected = one in
-  (* Debugging output *)
-  print_endline ("Expected (1): " ^ print_term expected);
-  print_endline ("Result after simplification: " ^ print_term simplified_result);
+  print_endline ("LOOOG succ 0: " ^ print_term succ_zero_term ^ "  ::: =>  " ^ print_term result);
+  let result_int = church_to_int result in
+  let expected_int = church_to_int expected in
   
-  (* Assert the result matches expected (Church numeral for 1) *)
-  assert_bool "succ 0 did not normalize to 1" (alpha_equal simplified_result expected)
+  assert_equal expected_int result_int ~msg:"succ 0 did not normalize to 1"
 
 
 (* Test for addition 1 1 normalization *)
 let test_addition_1_1_normalization _ctxt =
   let addition_1_1_term = App (App (add_term, one), one) in
-  (* Simplify the term *)
-  let simplified_result = ltr_cbv_norm addition_1_1_term in
+  let result = ltr_cbv_norm addition_1_1_term in
   let expected = two in
-  let result_integer = churchto_int simplified_result in
-  print_endline ("Addition 1 1 Integer :" ^ string_of_int result_integer);
-  print_endline ("Expected (2): " ^ print_term expected ) ;
-  print_endline ("Result after simplification: (2) " ^ print_term simplified_result);
+  let result_int = church_to_int result in
+  let expected_int = church_to_int expected in
+  assert_equal expected_int result_int ~msg:"addition 1 1 did not normalize to 2"
+
+(* Test for succ 3 normalization *)
+let test_succ_3_normalization _ctxt =
+  let succ_3_term = App (succ_term, three) in
+  let result = ltr_cbv_norm succ_3_term in
+  let expected = four in
+  let result_int = church_to_int result in
+  let expected_int = church_to_int expected in
+  assert_equal expected_int result_int ~msg:"succ 3 did not normalize to 4"
   
-  (* Assert the result matches expected (Church numeral for 2) *)
-  assert_bool "addition 1 1 did not normalize to 2" (alpha_equal simplified_result expected)
+(* Test for S normalisation *)
+let test_s_term_normalization _ctxt =
+  let result = ltr_cbv_norm s_term in
+  let expected = s_term in
+  print_endline ("S: " ^ print_term s_term ^ "  ::: =>  " ^ print_term result);
+  assert_bool "S did not normalize to itself" (alpha_equal result expected)
+
+
 
 
 
@@ -138,8 +149,9 @@ let normalization_tests =
     "test_s_k_k_term_normalization" >:: test_s_k_k_term_normalization;
     "test_zero_term_normalization" >:: test_zero_term_normalization;
     "test_succ_zero_normalization" >:: test_succ_zero_normalization;
-    
     "test_addition_1_1_normalization" >:: test_addition_1_1_normalization;
+    "test_succ_3_normalization" >:: test_succ_3_normalization;
+    "test_s_term_normalization" >:: test_s_term_normalization;
   ]
 
 

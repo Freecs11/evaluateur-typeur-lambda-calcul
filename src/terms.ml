@@ -26,11 +26,34 @@ let two = Abs ("f", Abs ("x", App (Var "f", App (Var "f", Var "x"))))  (* 2: λf
 
 let three = Abs ("f", Abs ("x", App (Var "f", App (Var "f", App (Var "f", Var "x")))))  (* 3: λf. λx. f (f (f x)) *)
 
-(* Arithmetic operations *)
+let four = Abs ("f", Abs ("x", App (Var "f", App (Var "f", App (Var "f", App (Var "f", Var "x"))))))
 
+
+(* Arithmetic operations *)
 (* successor *)
 let succ_term = Abs ("n", Abs ("f", Abs ("x", App (Var "f", App (App (Var "n", Var "f"), Var "x"))))) (* succ: λn. λf. λx. f (n f x) *)
 
 (* addition  add = λnmfe.n f (m f e) (addition) *)
 let add_term =  Abs ("m", Abs ("n", Abs ("f", Abs ("x", App (App (Var "m", Var "f"), App (App (Var "n", Var "f"), Var "x"))))))
 
+
+
+(* Fonction qui convertit un entier en notation Church en un entier OCaml 
+  Fait avec Alseiny
+*)
+let church_to_int (church_num: pterm) : int =
+  match church_num with
+  | Abs ( _ , Abs ( _ , body)) -> (
+      let rec eval n = match n with
+        | Var "x" -> 0
+        | App (Var "f", t) -> 1 + eval t
+        |  _ -> failwith "Invalid Church numeral"
+      in eval body
+    )
+  | _ -> failwith "Not a valid Church numeral"
+;;
+
+(* Conversion d'un entier vers un terme Church *)
+let rec int_to_church n =
+  if n = 0 then zero
+  else App (succ_term, int_to_church (n-1))

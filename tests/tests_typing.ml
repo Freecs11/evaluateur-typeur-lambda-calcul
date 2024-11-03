@@ -5,24 +5,7 @@ open OUnit2
 open Terms
 
 
-(* Fonction d'équivalence alpha entre deux types *)
-let alpha_equal t1 t2 =
-  let mapping = ref [] in
-  let rec aux t1 t2 =
-    match t1, t2 with
-    | TVar x, TVar y ->
-        (try
-           let y_mapped = List.assoc x !mapping in
-           y = y_mapped
-         with Not_found ->
-           mapping := (x, y) :: !mapping; 
-           true)
-    | TArr (a1, a2), TArr (b1, b2) ->
-        aux a1 b1 && aux a2 b2
-    | TNat, TNat -> true
-    | _, _ -> false
-  in
-  aux t1 t2
+
 
 (* ----------------- Tests d'unification ----------------- *)
 
@@ -139,7 +122,7 @@ let test_infer_identity _ =
       print_endline (print_type t1);
       print_endline (print_type t2);
       let expected_type = TArr (TVar "T1", TVar "T1") in
-      assert_bool "Type inféré incorrect" (alpha_equal (TArr (t1, t2)) expected_type)
+      assert_bool "Type inféré incorrect" (types_alpha_equal (TArr (t1, t2)) expected_type)
   | _ -> assert_failure "Le type inféré n'est pas une fonction"
 
 (* Fonction de test pour l'inférence de type de la fonction constante *)
@@ -160,7 +143,7 @@ let test_infer_nested_abs _ =
   let expected_type = TArr (TArr (TVar "T1", TVar "T2"), TArr (TVar "T1", TVar "T2")) in
   print_endline ("Type inféré : " ^ (print_type inferred_type));
   print_endline ("Type attendu : " ^ (print_type expected_type));
-  assert_bool "Type inféré incorrect" (alpha_equal inferred_type expected_type)
+  assert_bool "Type inféré incorrect" (types_alpha_equal inferred_type expected_type)
 
 (* Fonction de test pour l'inférence de type de l'application *)
 let test_infer_application _ =
@@ -170,7 +153,7 @@ let test_infer_application _ =
   let expected_type = TVar "T2" in
   print_endline ("Type inféré : " ^ (print_type inferred_type));
   print_endline ("Type attendu : " ^ (print_type expected_type));
-  assert_bool "Type inféré incorrect" (alpha_equal inferred_type expected_type)
+  assert_bool "Type inféré incorrect" (types_alpha_equal inferred_type expected_type)
 
 (* Fonction de test pour l'application complexe *)
 let test_infer_application_complex _ =
@@ -184,7 +167,7 @@ let test_infer_application_complex _ =
   let expected_type = TVar "T2" in
   print_endline ("Type inféré test_comp : " ^ (print_type inferred_type));
   print_endline ("Type attendu test_comp: " ^ (print_type expected_type));
-  assert_bool "Type inféré incorrect" (alpha_equal inferred_type expected_type)
+  assert_bool "Type inféré incorrect" (types_alpha_equal inferred_type expected_type)
 
 (* Fonction de test pour l'inférence de type de delta_term (λx. x x) *)
 let test_infer_delta _ =

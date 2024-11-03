@@ -2,11 +2,6 @@ open Typing_ast
 open Lambda_ast
 
 
-let compteur_var_t : int ref = ref 0
-let nouvelle_var_t () : string = compteur_var_t := !compteur_var_t + 1; "T" ^ (string_of_int !compteur_var_t)
-
-type equa = (ptype * ptype) list
-type env = (string * ptype) list
 
 
 (* chercher une variable dans l'environnement *)
@@ -16,31 +11,14 @@ let rec cherche_type (v : string) (e : env) : ptype =
   | (v1, t1)::q when v1 = v -> t1
   | (_, _)::q -> (cherche_type v q) 
 
-
-(* Génération des équations de typage *)
-let rec genere_equa (te : pterm) (ty : ptype) (env : env) : equa =
-  match te with
-  | Var x -> let t_x = cherche_type x env in [(t_x, ty)] (* Récupérer le type de x dans l'environnement *)
-  | Abs (x, t) -> 
-      let nv1 : string = nouvelle_var_t () in
-      let nv2 : string = nouvelle_var_t () in
-      let ty1 = TVar nv1 in
-      let ty2 = TVar nv2 in
-      (ty, TArr (ty1, ty2)) :: (genere_equa t ty2 ((x, ty1) :: env)) 
-  | App (t1, t2) ->
-      let nv1 : string = nouvelle_var_t () in
-      let ty1 = TVar nv1 in 
-      let eq1 = genere_equa t1 (TArr (ty1, ty)) env in
-      let eq2 = genere_equa t2 ty1 env in
-      eq1 @ eq2
-
-
-(* Occur check , vérifie si une variable de type apparaît dans un type *)
+  (* Occur check , vérifie si une variable de type apparaît dans un type *)
 let rec occurs_check (v : string) (ty : ptype) : bool =
   match ty with
   | TVar x -> x = v
   | TArr (t1, t2) -> occurs_check v t1 || occurs_check v t2
   | TNat -> false
+  | TList t -> occurs_check v t
+  | TForall (x, t) -> if x = v then false else occurs_check v t
 
 
 (* Substitution d'une variable de type par un type dans un type *)
@@ -49,30 +27,117 @@ let rec subtitute_type_into_type (var : string) (replacement : ptype) (ty : ptyp
   | TVar x  -> if x = var then replacement else TVar x
   | TArr (t1, t2) -> TArr (subtitute_type_into_type var replacement t1, subtitute_type_into_type var replacement t2)
   | TNat -> TNat
+  | TList t -> TList (subtitute_type_into_type var replacement t)
+  | TForall (x, t) -> if x = var then TForall (x, t) else TForall (x, subtitute_type_into_type var replacement t)
 
 (* Substitution d'une variable de type par un type dans une équation *)
 let rec subtitute_type_into_equa (var : string) (replacement : ptype) (equa : equa) : equa =
   let fun_to_apply (t1, t2) = (subtitute_type_into_type var replacement t1, subtitute_type_into_type var replacement t2) in
   List.map fun_to_apply equa 
 
+(* Récupère les variables libres d'un type *)
+let rec free_vars_type (ty : ptype) : string list =
+  match ty with
+  | TVar x -> [x]
+  | TArr (t1, t2) -> 
+      List.sort_uniq String.compare (free_vars_type t1 @ free_vars_type t2)
+  | TNat -> []
+  | TList t -> free_vars_type t
+  | TForall (x, t) -> List.filter (fun y -> y <> x) (free_vars_type t)
 
-(* Unification *)
-let rec unification (equa : equa) (sub : env) : (equa * env) =
-  match equa with
-  | [] -> (equa, sub) 
-  | (s, t) :: q when s = t -> unification q sub (* Supprimer l'équation triviale *)
+
+(* Récupère les variables libres d'un environnement *)
+let free_vars_env (env : env) : string list =
+  List.concat (List.map (fun (_, t) -> free_vars_type t) env)
+
+(* Généralisation d'un type *)
+let generalize (env : env) (ty : ptype) : ptype =
+  let env_vars = free_vars_env env in
+  let type_vars = free_vars_type ty in
+  let free_vars = List.filter (fun x -> not (List.mem x env_vars)) type_vars in
+  List.fold_right (fun x acc -> TForall (x, acc)) free_vars ty
+
+  
+(* Fonction d'application de substitution sur un type *)
+let rec apply_subst_env (subst : env) (ty : ptype) : ptype =
+  match ty with
+  | TVar x ->
+      (try apply_subst_env subst (List.assoc x subst) with Not_found -> TVar x)
+  | TArr (t1, t2) -> TArr (apply_subst_env subst t1, apply_subst_env subst t2)
+  | TNat -> TNat
+  | TList t -> TList (apply_subst_env subst t)
+  | TForall (x, t) -> TForall (x, apply_subst_env subst t)
+
+
+  (* Fonction qui vérifie si deux types ont des constructeurs différents 
+  une exception est le Forall *)
+let different_constructors t1 t2 =
+  match t1, t2 with
+  | TForall _, _ | _, TForall _ -> false  (* Exception pour Forall *)
+  | TVar _, _ | _, TVar _ -> false        (* Les variables peuvent s'unifier *)
+  | TList _, TList _ -> false
+  | TArr _, TArr _ -> false
+  | TNat, TNat -> false
+  | _, _ -> true
+
+
+
+(* Modification de l'unification *)
+let rec unification (eqs : equa) (sub : env) : (equa * env) =
+  match eqs with  
+  | [] -> (eqs, sub)
+  
+  | (s, t) :: q when s = t -> 
+      Printf.printf "Équation triviale supprimée: %s = %s\n" (print_type s) (print_type t);
+      unification q sub
+
+  | (s, t) :: q when different_constructors s t -> 
+      Printf.printf "Unification échouée : %s != %s\n" (print_type s) (print_type t);
+      raise (Unification_Failed "Unification failed : different constructors")
+  
   | (TVar x, t) :: q when not (occurs_check x t) ->
-      let q' = subtitute_type_into_equa x t q in (* Remplacer x par t dans les équations *)
-      unification q' ((x, t) :: sub) (* Ajouter la substitution sans modifier l'environnement existant *)
-  | (t, TVar x) :: q when not (occurs_check x t) ->
+      Printf.printf "Unification TVar %s avec %s\n" x (print_type t);
       let q' = subtitute_type_into_equa x t q in
       unification q' ((x, t) :: sub)
+  
+  | (t, TVar x) :: q when not (occurs_check x t) ->
+      Printf.printf "Unification TVar %s avec %s\n" x (print_type t);
+      let q' = subtitute_type_into_equa x t q in
+      unification q' ((x, t) :: sub)
+  
   | (TArr (s1, s2), TArr (t1, t2)) :: q ->
+      Printf.printf "Unification TArr\n";
       unification ((s1, t1) :: (s2, t2) :: q) sub  
-  | _ ->
-      (* Non unifiable *)
-      raise (Unification_Failed "Unification failed")
+  
+  | (TForall (x, t1), t2) :: q ->
+      Printf.printf "Unification TForall\n";
+      let fresh = TVar (nouvelle_var_t ()) in
+      let t1' = subtitute_type_into_type x fresh t1 in
+      unification ((t1', t2) :: q) sub
+  
+  | (t1, TForall (x, t2)) :: q ->
+      Printf.printf "Unification TForall inverse\n";
+      let fresh = TVar (nouvelle_var_t ()) in
+      let t2' = subtitute_type_into_type x fresh t2 in
+      unification ((t1, t2') :: q) sub
+  
+  | (TList t1, TList t2) :: q ->
+      Printf.printf "Unification TList\n";
+      unification ((t1, t2) :: q) sub  (* égalise le type des éléments *)
 
+  | (t1, t2) :: q -> 
+      Printf.printf "Unification échouée : %s != %s\n" (print_type t1) (print_type t2);
+      print_endline "-------------------" ;
+      print_endline " EQUA : " ;
+      print_endline (print_equa q);
+      print_endline "-------------------" ;
+      print_endline " SUB : " ;
+      print_endline (print_env sub);
+      print_endline "-------------------" ;
+      print_endline "-------------------" ;
+      Printf.printf "firdt type: %s\n" (print_type t1);
+      Printf.printf "second type: %s\n" (print_type t2);
+      raise (Unification_Failed "Unification failed : unknown reason")
 
 (* Fonction d'unification avec timeout *)
 let rec unify (equa : equa) (sub : env) (timeout : int) : env option =
@@ -83,17 +148,85 @@ let rec unify (equa : equa) (sub : env) (timeout : int) : env option =
         if equa' = [] then Some sub'
         else unify equa' sub' (timeout - 1)
 
-(* Fonction d'application de substitution sur un type *)
-let rec apply_subst_env (subst : env) (ty : ptype) : ptype =
-  match ty with
-  | TVar x ->
-      (try apply_subst_env subst (List.assoc x subst) with Not_found -> TVar x)
-  | TArr (t1, t2) -> TArr (apply_subst_env subst t1, apply_subst_env subst t2)
-  | TNat -> TNat
 
+(* Génération des équations de typage *)
+let rec genere_equa (te : pterm) (ty : ptype) (env : env) : equa =
+  match te with
+  | Var x -> 
+    let t_x = cherche_type x env in 
+    [(ty, t_x)]
+  
+  | Abs (x, t) -> 
+      let nv1 = nouvelle_var_t () in
+      let nv2 = nouvelle_var_t () in
+      let ty1 = TVar nv1 in
+      let ty2 = TVar nv2 in
+      (ty, TArr (ty1, ty2)) :: (genere_equa t ty2 ((x, ty1) :: env))
+  
+  | App (t1, t2) ->
+      let nv1 = nouvelle_var_t () in
+      let ty1 = TVar nv1 in 
+      let eq1 = genere_equa t1 (TArr (ty1, ty)) env in
+      let eq2 = genere_equa t2 ty1 env in
+      eq1 @ eq2
+  
+  | Int _ -> 
+      [(ty, TNat)]
+  
+  | Add (t1, t2) | Sub (t1, t2) -> 
+      (ty, TNat) :: (genere_equa t1 TNat env) @ (genere_equa t2 TNat env)
+  
+  | Cons (t1, t2) ->
+      let elem_type = TVar (nouvelle_var_t ()) in
+      (ty, TList elem_type) ::
+      (genere_equa t1 elem_type env) @
+      (genere_equa t2 (TList elem_type) env)
+  
+  | Head t ->
+      let alpha = nouvelle_var_t () in
+      [
+        (ty, TForall (alpha, TArr (TList (TVar alpha), TVar alpha)))
+      ] @
+      genere_equa t (TList (TVar alpha)) env
+  
+  | Tail t ->
+      let alpha = nouvelle_var_t () in
+      [
+        (ty, TForall (alpha, TArr (TList (TVar alpha), TList (TVar alpha))))
+      ] @
+      genere_equa t (TList (TVar alpha)) env
+  
+  | IfZero (cond, then_branch, else_branch) ->
+      (genere_equa cond TNat env) @
+      (genere_equa then_branch ty env) @
+      (genere_equa else_branch ty env)
+  
+  | IfEmpty (cond, then_branch, else_branch) ->
+      let alpha = nouvelle_var_t () in
+      (genere_equa cond (TForall (alpha, TList (TVar alpha))) env) @
+      (genere_equa then_branch ty env) @
+      (genere_equa else_branch ty env)
 
-(* Fonction d'inférence de type corrigée *)
-let infer_type (te : pterm) (env : env) : ptype =
+  | Fix (phi, t) ->
+      let a = nouvelle_var_t () in
+      Printf.printf "Typage de Fix: Assignation de phi à TArr (%s -> %s)\n" (print_type (TVar a)) (print_type (TVar a));
+      genere_equa t (TArr (TVar a, TVar a)) ((phi, TVar a) :: env) @ [(ty, TVar a)]
+  
+  | Let (x, e1, e2) ->
+      let temp_ty = TVar (nouvelle_var_t ()) in
+      let temp_env = (x, temp_ty) :: env in
+      let ty_e1 = TVar (nouvelle_var_t ()) in
+      let eq1 = genere_equa e1 ty_e1 temp_env in
+      (match unify eq1 [] 200 with
+      | Some sub ->
+          let t0 = apply_subst_env sub ty_e1 in
+          let gen_t0 = generalize env t0 in
+          genere_equa e2 ty ((x, gen_t0) :: env)
+      | None -> raise (Type_Inconnu "Failed to type e1 in let"))
+  | Nil -> 
+      [(ty, TList (TVar (nouvelle_var_t())))]
+  (* Fonction d'inférence de type corrigée *)
+and infer_type (te : pterm) (env : env) : ptype =
   compteur_var_t := 0;
 
   (* Générer une variable de type fraîche pour le type cible *)
@@ -102,26 +235,39 @@ let infer_type (te : pterm) (env : env) : ptype =
   (* Générer les équations de typage en utilisant l'environnement donnée *)
   let equa = genere_equa te ty_cible env in
 
+
   (* Résoudre les équations avec un timeout, par exemple 200 étapes *)
-  let subst_option = unify equa [] 200 in
+  let subst_option = unify equa [] 500 in
+
 
   (* Appliquer la substitution au type cible pour obtenir le type final *)
   match subst_option with
-  | Some subst ->
-      apply_subst_env subst ty_cible
-  | None ->
-      raise (Unification_Failed "Unification failed")
+  | Some sub -> apply_subst_env sub ty_cible
+  | None -> 
+      raise (Type_Inconnu "Type inference failed")
 
 
 
-(* Fonctions d'affichage *)
-
-let rec print_env (env : env) : string =
-  match env with
-  | [] -> ""
-  | (x, t) :: q -> x ^ " : " ^ (print_type t) ^ "\n" ^ (print_env q)
-
-let rec print_equa (equa : equa) : string =
-  match equa with
-  | [] -> ""
-  | (t1, t2) :: q -> (print_type t1) ^ " = " ^ (print_type t2) ^ "\n" ^ (print_equa q)
+  (* Fonction d'équivalence alpha entre deux types *)
+let rec types_alpha_equal t1 t2 =
+  let mapping = ref [] in
+  let rec aux t1 t2 =
+    match t1, t2 with
+    | TVar x, TVar y ->
+        (try
+           let y_mapped = List.assoc x !mapping in
+           y = y_mapped
+         with Not_found ->
+           mapping := (x, y) :: !mapping; 
+           true)
+    | TArr (a1, a2), TArr (b1, b2) ->
+        aux a1 b1 && aux a2 b2
+    | TNat, TNat -> true
+    | TList t1', TList t2' -> aux t1' t2'  (* Utiliser aux ici *)
+    | TForall (x1, t1'), TForall (x2, t2') ->
+        (* Renommage pour éviter les conflits *)
+        let t2'' = subtitute_type_into_type x2 (TVar x1) t2' in
+        aux t1' t2''
+    | _, _ -> false
+  in
+  aux t1 t2

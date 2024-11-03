@@ -41,9 +41,20 @@ test_typing: all
 	ocamlfind ocamlc $(OCAMLFLAGS) $(LIBS) -o bin/test_program src/lambda_ast.ml src/typing_ast.ml src/typing.ml src/terms.ml tests/tests_typing.ml
 	./bin/test_program
 
+# tests de reductions avec les nouveaux types 
+test_redWTypes : all
+	ocamlfind ocamlc $(OCAMLFLAGS) $(LIBS) -o bin/test_program src/lambda_ast.ml src/typing_ast.ml src/typing.ml src/reduction.ml src/terms.ml tests/tests_reduction_w_new_types.ml
+	./bin/test_program 
+
+test_tyWTypes : all
+	ocamlfind ocamlc $(OCAMLFLAGS) $(LIBS) -o bin/test_program src/lambda_ast.ml src/typing_ast.ml src/typing.ml src/reduction.ml src/terms.ml tests/tests_typing_w_new_types.ml
+	./bin/test_program
+
 retest_reductions: clean all test_reductions
+retest_nrt : clean all test_redWTypes
 retest_typing: clean all test_typing
-retest : clean all test_reductions test_typing
+retest_nt : clean all test_tyWTypes
+retest : clean all test_reductions test_typing test_redWTypes test_tyWTypes
 
 
 # Nettoyer les fichiers de test
