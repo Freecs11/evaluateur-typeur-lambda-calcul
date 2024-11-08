@@ -1,0 +1,127 @@
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: Runner: processes
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: Chooser: simple
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: Configuration suite_name = "Typing Tests"
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: Configuration cache_filename = "/mnt/c/Users/Freecs/Desktop/M2/TAS/Eval-Typeur-LambdaC/oUnit-$(suite_name).cache"
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: Configuration run_gc_full_major = "true"
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: Configuration display = "true"
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: Configuration results_style_1_X = "false"
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: Configuration testdata_dir = "none"
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: Configuration health_check_interval = "1."
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: Configuration verbose = "false"
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: Configuration chooser = "simple"
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: Configuration output_html_dir = "none"
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: Configuration processes_kill_period = "5."
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: Configuration runner = "processes"
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: Configuration shards = "4"
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: Configuration processes_grace_period = "5."
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: Configuration log_encoding = "utf-8"
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: Configuration output_junit_file = "none"
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: Configuration ci = "false"
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: Configuration output_file = "/mnt/c/Users/Freecs/Desktop/M2/TAS/Eval-Typeur-LambdaC/oUnit-$(suite_name)-$(shard_id).log"
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: Using 4 workers maximum.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: Starting worker number LAPTOP-1P5DK0FT#01.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: Worker LAPTOP-1P5DK0FT#01 started.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: Starting worker number LAPTOP-1P5DK0FT#02.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: Worker LAPTOP-1P5DK0FT#02 started.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: Starting worker number LAPTOP-1P5DK0FT#03.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: Worker LAPTOP-1P5DK0FT#03 started.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: Starting worker number LAPTOP-1P5DK0FT#04.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: Worker LAPTOP-1P5DK0FT#04 started.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: 4 tests running: Typing Tests:3:test_app_type, Typing Tests:2:test_abs_type, Typing Tests:1:test_var_type, Typing Tests:0:test_let_imbriq.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#01 I: Start test Typing Tests:0:test_let_imbriq.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#02 I: Start test Typing Tests:1:test_var_type.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: 4 tests running: Typing Tests:3:test_app_type, Typing Tests:2:test_abs_type, Typing Tests:1:test_var_type, Typing Tests:0:test_let_imbriq.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#01 I: Test Typing Tests:0:test_let_imbriq is successful.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#02 I: Test Typing Tests:1:test_var_type is successful.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: 4 tests running: Typing Tests:3:test_app_type, Typing Tests:2:test_abs_type, Typing Tests:1:test_var_type, Typing Tests:0:test_let_imbriq.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#01 I: End test Typing Tests:0:test_let_imbriq.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#02 I: End test Typing Tests:1:test_var_type.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#03 I: Start test Typing Tests:2:test_abs_type.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: 4 tests running: Typing Tests:3:test_app_type, Typing Tests:2:test_abs_type, Typing Tests:1:test_var_type, Typing Tests:0:test_let_imbriq.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#03 I: Test Typing Tests:2:test_abs_type is successful.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#04 I: Start test Typing Tests:3:test_app_type.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: 4 tests running: Typing Tests:5:test_nested_abs_type, Typing Tests:4:test_add_with_variable_type, Typing Tests:3:test_app_type, Typing Tests:2:test_abs_type.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#03 I: End test Typing Tests:2:test_abs_type.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#04 I: Test Typing Tests:3:test_app_type is successful.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#02 I: Start test Typing Tests:4:test_add_with_variable_type.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#01 I: Start test Typing Tests:5:test_nested_abs_type.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: 4 tests running: Typing Tests:5:test_nested_abs_type, Typing Tests:4:test_add_with_variable_type, Typing Tests:3:test_app_type, Typing Tests:2:test_abs_type.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#04 I: End test Typing Tests:3:test_app_type.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#02 I: Test Typing Tests:4:test_add_with_variable_type is successful.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#01 I: Test Typing Tests:5:test_nested_abs_type is successful.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: 4 tests running: Typing Tests:6:test_malformed_term_type, Typing Tests:5:test_nested_abs_type, Typing Tests:4:test_add_with_variable_type, Typing Tests:3:test_app_type.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#02 I: End test Typing Tests:4:test_add_with_variable_type.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#01 I: End test Typing Tests:5:test_nested_abs_type.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: 4 tests running: Typing Tests:7:test_list_type, Typing Tests:6:test_malformed_term_type, Typing Tests:5:test_nested_abs_type, Typing Tests:4:test_add_with_variable_type.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#03 I: Start test Typing Tests:6:test_malformed_term_type.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#04 I: Start test Typing Tests:7:test_list_type.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: 4 tests running: Typing Tests:9:test_LET, Typing Tests:8:test_polymorphic_identity, Typing Tests:7:test_list_type, Typing Tests:6:test_malformed_term_type.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#03 I: Test Typing Tests:6:test_malformed_term_type is successful.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#04 I: Test Typing Tests:7:test_list_type is successful.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#01 I: Start test Typing Tests:8:test_polymorphic_identity.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#02 I: Start test Typing Tests:9:test_LET.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: 4 tests running: Typing Tests:9:test_LET, Typing Tests:8:test_polymorphic_identity, Typing Tests:7:test_list_type, Typing Tests:6:test_malformed_term_type.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#03 I: End test Typing Tests:6:test_malformed_term_type.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#04 I: End test Typing Tests:7:test_list_type.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#02 I: Test Typing Tests:9:test_LET is successful.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: 4 tests running: Typing Tests:9:test_LET, Typing Tests:8:test_polymorphic_identity, Typing Tests:7:test_list_type, Typing Tests:6:test_malformed_term_type.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#01 I: Test Typing Tests:8:test_polymorphic_identity is successful.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#02 I: End test Typing Tests:9:test_LET.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: 4 tests running: Typing Tests:11:test_map_polymorphic, Typing Tests:10:test_head_type, Typing Tests:9:test_LET, Typing Tests:8:test_polymorphic_identity.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#01 I: End test Typing Tests:8:test_polymorphic_identity.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#04 I: Start test Typing Tests:10:test_head_type.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: Still 4 tests running : Typing Tests:12:test_factorial_type, Typing Tests:11:test_map_polymorphic, Typing Tests:10:test_head_type, Typing Tests:8:test_polymorphic_identity.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: 4 tests running: Typing Tests:12:test_factorial_type, Typing Tests:11:test_map_polymorphic, Typing Tests:10:test_head_type, Typing Tests:8:test_polymorphic_identity.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#04 I: Test Typing Tests:10:test_head_type is successful.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#03 I: Start test Typing Tests:11:test_map_polymorphic.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: Still 3 tests running : Typing Tests:12:test_factorial_type, Typing Tests:11:test_map_polymorphic, Typing Tests:10:test_head_type.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: 3 tests running: Typing Tests:12:test_factorial_type, Typing Tests:11:test_map_polymorphic, Typing Tests:10:test_head_type.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#04 I: End test Typing Tests:10:test_head_type.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#03 I: Test Typing Tests:11:test_map_polymorphic is successful.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#02 I: Start test Typing Tests:12:test_factorial_type.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: Still 3 tests running : Typing Tests:12:test_factorial_type, Typing Tests:11:test_map_polymorphic, Typing Tests:10:test_head_type.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: 3 tests running: Typing Tests:12:test_factorial_type, Typing Tests:11:test_map_polymorphic, Typing Tests:10:test_head_type.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#03 I: End test Typing Tests:11:test_map_polymorphic.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#02 I: Test Typing Tests:12:test_factorial_type is successful.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: Still 2 tests running : Typing Tests:12:test_factorial_type, Typing Tests:11:test_map_polymorphic.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: 2 tests running: Typing Tests:12:test_factorial_type, Typing Tests:11:test_map_polymorphic.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#02 I: End test Typing Tests:12:test_factorial_type.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: Still 1 tests running : Typing Tests:12:test_factorial_type.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: 1 tests running: Typing Tests:12:test_factorial_type.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: 0 tests running: .
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: Worker LAPTOP-1P5DK0FT#01 has ended.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: Worker LAPTOP-1P5DK0FT#04 has ended.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: Worker LAPTOP-1P5DK0FT#03 has ended.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: Worker LAPTOP-1P5DK0FT#02 has ended.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: Used 4 worker during test execution.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: Run 3 tests with shard LAPTOP-1P5DK0FT#03.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: Run 3 tests with shard LAPTOP-1P5DK0FT#01.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: Run 3 tests with shard LAPTOP-1P5DK0FT#04.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: Run 4 tests with shard LAPTOP-1P5DK0FT#02.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: Check health of shard LAPTOP-1P5DK0FT#03, 2 times.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: Check health of shard LAPTOP-1P5DK0FT#01, 5 times.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: Check health of shard LAPTOP-1P5DK0FT#04, 3 times.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: Check health of shard LAPTOP-1P5DK0FT#02, 1 times.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: ==============
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: Summary:
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: Test Typing Tests:12:test_factorial_type is successful.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: Test Typing Tests:11:test_map_polymorphic is successful.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: Test Typing Tests:10:test_head_type is successful.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: Test Typing Tests:8:test_polymorphic_identity is successful.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: Test Typing Tests:9:test_LET is successful.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: Test Typing Tests:7:test_list_type is successful.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: Test Typing Tests:6:test_malformed_term_type is successful.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: Test Typing Tests:5:test_nested_abs_type is successful.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: Test Typing Tests:4:test_add_with_variable_type is successful.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: Test Typing Tests:3:test_app_type is successful.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: Test Typing Tests:2:test_abs_type is successful.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: Test Typing Tests:1:test_var_type is successful.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: Test Typing Tests:0:test_let_imbriq is successful.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: Ran: 13 tests in: 0.25 seconds.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: Cases: 13.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: Tried: 13.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: Errors: 0.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: Failures: 0.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: Skip: 0.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: Todo: 0.
+2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#00 I: Timeout: 0.

@@ -52,7 +52,7 @@ let test_malformed_term_type _ctxt =
   let env = [] in
   print_endline ("Testing malformed term: " ^ print_term term);
   assert_raises
-    (Unification_Failed "Unification failed : different constructors")
+    (Unification_Failed "Unification failed: different constructors")
     (fun () -> infer_type term env)
 
 (* Tests pour les listes *)
@@ -68,11 +68,21 @@ let test_head_type _ctxt =
   let term = Head (Cons (Int 1, Nil)) in
   let env = [] in
   let infer_typered = infer_type term env in
-  (* Le type de Head est ∀X.[X] → X selon le sujet *)
-  let expected = TForall ("X", TArr (TList (TNat), TNat)) in
+  (* je ne comprend pas si le type de Head est Forall("alpha", TArr(TList(TVar("alpha")), TVar("alpha"))) 
+    ou alors le c'est simplement le type de la liste , j'ai donc juste pris le type de la liste*)
+  (* let expected =   TForall ("alpha", TArr (TList (TNat), TNat)) in *)
+  let expected = TNat in
   print_endline ("Type inféré pour Head: " ^ print_type infer_typered);
   print_endline ("Type attendu pour Head: " ^ print_type expected);
   assert_bool "Type inféré incorrect pour Head" 
+    (types_alpha_equal infer_typered expected)
+
+let test_tail_type _ctxt =
+  let term = Tail (Cons (Int 1, Nil)) in
+  let env = [] in
+  let infer_typered = infer_type term env in
+  let expected = TList TNat in
+  assert_bool "Type inféré incorrect pour Tail" 
     (types_alpha_equal infer_typered expected)
 
 (* Tests pour les fonctions polymorphes *)
@@ -87,17 +97,26 @@ let test_polymorphic_identity _ctxt =
   assert_bool "Type inféré incorrect pour identité polymorphe" 
     (types_alpha_equal infer_typered expected)
 
-let test_polymorphic_map _ctxt =
-  (* Définir map via Let pour bénéficier du let-polymorphisme *)
-  let term = Let ("map", 
-    Fix ("self", 
+let test_LET _ctxt =
+  let term = Let ("id", Abs ("x", Var "x"), App (Var "id", Int 5)) in 
+  let env = [] in
+  let infer_typered = infer_type term env in
+  (* let expected = TList TNat in *)
+  let expected = TNat in
+  Printf.printf "Type inféré: %s\n" (print_type infer_typered);
+  assert_bool "Type inféré incorrect pour map"
+    (types_alpha_equal infer_typered expected)
+
+let test_map_polymorphic _ctxt = 
+  let term = Let ("map",
+    Fix ("map",
       Abs ("f",
-        Abs ("lst",
-          IfEmpty (Var "lst",
+        Abs ("l",
+          IfEmpty (Var "l",
             Nil,
             Cons (
-              App (Var "f", Head (Var "lst")),
-              App (App (Var "self", Var "f"), Tail (Var "lst"))
+              App (Var "f", Head (Var "l")),
+              App (App (Var "map", Var "f"), Tail (Var "l"))
             )
           )
         )
@@ -105,18 +124,16 @@ let test_polymorphic_map _ctxt =
     ),
     App (
       App (Var "map", Abs ("x", Add (Var "x", Int 1))),
-      Cons (Int 1, Cons (Int 2, Nil))
+      Cons (Int 1, Nil)
     )
   ) in
-  
   let env = [] in
   let infer_typered = infer_type term env in
   let expected = TList TNat in
-  Printf.printf "Type inféré: %s\n" (print_type infer_typered);
   assert_bool "Type inféré incorrect pour map"
     (types_alpha_equal infer_typered expected)
 
-(* Tests pour la factorielle *)
+    (* Tests pour la factorielle *)
 let test_factorial_type _ctxt =
   let multiply = Fix ("mult", Abs ("x", 
     Abs ("y",
@@ -143,21 +160,38 @@ let test_factorial_type _ctxt =
   assert_bool "Type inféré incorrect pour factorielle" 
     (types_alpha_equal infer_typered expected)
 
+
+
+let test_let_imbriq _ctxt = 
+  let term = Let ("f", Abs ("x", Add (Var "x", Int 1)),  (* f : Nat -> Nat *)
+  Let ("y", Int 10,  App (Var "f", Var "y"))) 
+  in
+  let env = [] in
+  let infer_typered = infer_type term env in
+  print_endline ("Type inféré pour let imbriqué: " ^ print_type infer_typered);
+  let expected = TNat in
+  assert_bool "Type inféré incorrect pour let imbriqué" 
+    (types_alpha_equal infer_typered expected)
+
 (* Suite de tests *)
 let typing_tests =
   "Typing Tests" >::: [
-    (* "test_var_type" >:: test_var_type;
+    "test_let_imbriq" >:: test_let_imbriq;
+    "test_var_type" >:: test_var_type;
     "test_abs_type" >:: test_abs_type;
     "test_app_type" >:: test_app_type;
     "test_add_with_variable_type" >:: test_add_with_variable_type;
     "test_nested_abs_type" >:: test_nested_abs_type;
     "test_malformed_term_type" >:: test_malformed_term_type;
     "test_list_type" >:: test_list_type;
+    "test_polymorphic_identity" >:: test_polymorphic_identity;
+    "test_LET" >:: test_LET;
+
+    
+    (***** DOESN4T PASS *)
     "test_head_type" >:: test_head_type;
-    "test_polymorphic_identity" >:: test_polymorphic_identity; *)
-    "test_polymorphic_map" >:: test_polymorphic_map;
-    (* "test_factorial_type" >:: test_factorial_type; *)
-    (* Ajoutez d'autres tests ici *)
+    "test_map_polymorphic" >:: test_map_polymorphic;
+    "test_factorial_type" >:: test_factorial_type;
   ]
 
 (* Exécution des tests *)
