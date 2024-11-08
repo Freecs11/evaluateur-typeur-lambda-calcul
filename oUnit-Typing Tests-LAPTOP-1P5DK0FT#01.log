@@ -1,9 +1,0 @@
-2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#01 I: Start test Typing Tests:0:test_let_imbriq.
-2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#01 I: Test Typing Tests:0:test_let_imbriq is successful.
-2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#01 I: End test Typing Tests:0:test_let_imbriq.
-2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#01 I: Start test Typing Tests:5:test_nested_abs_type.
-2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#01 I: Test Typing Tests:5:test_nested_abs_type is successful.
-2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#01 I: End test Typing Tests:5:test_nested_abs_type.
-2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#01 I: Start test Typing Tests:8:test_polymorphic_identity.
-2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#01 I: Test Typing Tests:8:test_polymorphic_identity is successful.
-2024-11-08T16:37:31+00:00 LAPTOP-1P5DK0FT#01 I: End test Typing Tests:8:test_polymorphic_identity.

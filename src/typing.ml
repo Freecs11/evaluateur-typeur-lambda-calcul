@@ -28,7 +28,8 @@ let rec subtitute_type_into_type (var : string) (replacement : ptype) (ty : ptyp
   | TList t -> TList (subtitute_type_into_type var replacement t)
   | TForall (x, t) -> if x = var then TForall (x, t) else TForall (x, subtitute_type_into_type var replacement t)
 
-(* Substitution d'une variable de type par un type dans une équation *)
+(* Substitution d'une variable de type par un type dans une équation 
+  utilisé pour la fonction de test que 2 types sont équivalents 'types_alpha_equal' *)
 let rec subtitute_type_into_equa (var : string) (replacement : ptype) (equa : equa) : equa =
   let fun_to_apply (t1, t2) = (subtitute_type_into_type var replacement t1, subtitute_type_into_type var replacement t2) in
   List.map fun_to_apply equa 
@@ -44,7 +45,8 @@ let rec free_vars_type (ty : ptype) : string list =
   | TForall (x, t) -> List.filter (fun y -> y <> x) (free_vars_type t)
 
 
-(* Récupère les variables libres d'un environnement *)
+(* Récupère les variables libres d'un environnement,
+    c'est-à-dire les variables libres des types de l'environnement *)
 let free_vars_env (env : env) : string list =
   List.concat (List.map (fun (_, t) -> free_vars_type t) env)
 
@@ -82,54 +84,36 @@ let different_constructors t1 t2 =
 
 
 
-(* Modification de l'unification *)
+(* Fonction d'unification , prend une équation et un environnement et retourne l'équation résolue et l'environnement *)
 let rec unification (eqs : equa) (sub : env) : (equa * env) =
   Printf.printf "Unification de %s\n" (print_equa eqs);
-
   match eqs with  
-  | [] -> (eqs, sub)
-
-  | (s, t) :: q when s = t -> 
-      Printf.printf "Équation triviale supprimée: %s = %s\n" (print_type s) (print_type t);
-      unification q sub
-
-  (* Handle type variables before checking different constructors *)
-  | (TVar x, t) :: q -> 
-      if occurs_check x t then
-        raise (Unification_Failed (Printf.sprintf "Occurs check failed: %s occurs in %s" x (print_type t)))
-      else
-        let q' = subtitute_type_into_equa x t q in
-        let sub' = (x, t) :: sub in
-        unification q' sub'
-
-  | (t, TVar x) :: q -> 
-      if occurs_check x t then
-        raise (Unification_Failed (Printf.sprintf "Occurs check failed: %s occurs in %s" x (print_type t)))
-      else
-        let q' = subtitute_type_into_equa x t q in
-        let sub' = (x, t) :: sub in
-        unification q' sub'
-
-  (* Now check for different constructors *)
-  | (s, t) :: q when different_constructors s t -> 
-      Printf.printf "Unification échouée : %s != %s\n" (print_type s) (print_type t);
-      raise (Unification_Failed "Unification failed: different constructors")
-
-  | (TArr (s1, s2), TArr (t1, t2)) :: q ->
-      Printf.printf "Unification TArr\n";
-      unification ((s1, t1) :: (s2, t2) :: q) sub  
-
-  | (TList t1, TList t2) :: q ->
-      Printf.printf "Unification TList\n";
-      unification ((t1, t2) :: q) sub
-
-  | (TForall (x, t1), t2) :: rest | (t2, TForall (x, t1)) :: rest ->
-      let fresh = TVar (nouvelle_var_t ()) in
-      let t1' = subtitute_type_into_type x fresh t1 in
-      unification ((t1', t2) :: rest) sub
-
-  | (s, t) :: q -> 
-      raise (Unification_Failed "Unification failed: no matching case")
+    | [] -> (eqs, sub)
+    | (s, t) :: q when s = t -> 
+        Printf.printf "Équation triviale supprimée: %s = %s\n" (print_type s) (print_type t);
+        unification q sub
+    | (TVar x, t) :: q | (t, TVar x) :: q -> 
+        if occurs_check x t then
+          raise (Unification_Failed (Printf.sprintf "Unification failed"))
+        else
+          let q' = subtitute_type_into_equa x t q in
+          let sub' = (x, t) :: sub in
+          unification q' sub'
+    | (s, t) :: q when different_constructors s t -> 
+        Printf.printf "Unification échouée : %s != %s\n" (print_type s) (print_type t);
+        raise (Unification_Failed "Unification failed: different constructors")
+    | (TArr (s1, s2), TArr (t1, t2)) :: q ->
+        Printf.printf "Unification TArr\n";
+        unification ((s1, t1) :: (s2, t2) :: q) sub  
+    | (TList t1, TList t2) :: q ->
+        Printf.printf "Unification TList\n";
+        unification ((t1, t2) :: q) sub
+    | (TForall (x, t1), t2) :: rest | (t2, TForall (x, t1)) :: rest ->
+        let fresh = TVar (nouvelle_var_t ()) in
+        let t1' = subtitute_type_into_type x fresh t1 in
+        unification ((t1', t2) :: rest) sub
+    | (s, t) :: q -> 
+        raise (Unification_Failed "Unification failed: no matching case")
 
 
 (* Fonction d'unification avec timeout *)
@@ -203,7 +187,6 @@ let rec genere_equa (te : pterm) (ty : ptype) (env : env) : equa =
       let env_with_f = (f, rec_type) :: env in
       let body_eqns = genere_equa t rec_type env_with_f in
       [(ty, rec_type)] @ body_eqns
-
   |Let (x, e1, e2) ->
       (* We type e1 first *)
       let ty_e1 = infer_type e1 env in
@@ -215,16 +198,11 @@ let rec genere_equa (te : pterm) (ty : ptype) (env : env) : equa =
 
 and  infer_type (te : pterm) (env : env) : ptype =
   compteur_var_t := 0;
-
   let ty_cible = TVar (nouvelle_var_t ()) in
-
   let equa = genere_equa te ty_cible env in
-
   Printf.printf "Équations de typage générées: %s\n" (print_equa equa);
-
   (* Solve the equations with a timeout *)
   let subst_option = unify equa [] 500 in
-
   match subst_option with
   | Some sub -> apply_subst_env sub ty_cible
   | None -> raise (Type_Inconnu "Type inference failed")
