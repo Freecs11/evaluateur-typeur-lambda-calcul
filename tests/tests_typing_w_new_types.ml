@@ -1,5 +1,3 @@
-(* tests/tests_typing.ml *)
-
 open OUnit2
 open Typing_ast
 open Typing
@@ -161,7 +159,6 @@ let test_factorial_type _ctxt =
     (types_alpha_equal infer_typered expected)
 
 
-
 let test_let_imbriq _ctxt = 
   let term = Let ("f", Abs ("x", Add (Var "x", Int 1)),  (* f : Nat -> Nat *)
   Let ("y", Int 10,  App (Var "f", Var "y"))) 
@@ -172,6 +169,178 @@ let test_let_imbriq _ctxt =
   let expected = TNat in
   assert_bool "Type inféré incorrect pour let imbriqué" 
     (types_alpha_equal infer_typered expected)
+
+let test_polymorphic_fibonacci _ctxt = 
+  let term = Let ("fib",
+    Fix ("fib",
+      Abs ("n",
+        IfZero (Var "n",
+          Int 0,
+          IfZero (Sub (Var "n", Int 1),
+            Int 1,
+            Add (
+              App (Var "fib", Sub (Var "n", Int 1)),
+              App (Var "fib", Sub (Var "n", Int 2))
+            )
+          )
+        )
+      )
+    ),
+    App (Var "fib", Int 5)
+  ) in
+  let env = [] in
+  let infer_typered = infer_type term env in
+  let expected = TNat in
+  assert_bool "Type inféré incorrect pour fibonacci"
+    (types_alpha_equal infer_typered expected)
+
+
+  (* Test plus complexe qui defini filter/map et les utilise is_even qui filtre
+   les nombres pairs et retourne une liste d'entiers (1 pour pair, 0 pour impair) *)
+let test_complex_filter_map _ctxt = 
+  let term = Let ("filter",
+    Fix ("filter",
+      Abs ("f",
+        Abs ("l",
+          IfEmpty (Var "l",
+            Nil,
+            IfZero (App (Var "f", Head (Var "l")),
+              App (App (Var "filter", Var "f"), Tail (Var "l")),
+              Cons (
+                Head (Var "l"), 
+                App (App (Var "filter", Var "f"), Tail (Var "l"))
+              )
+            )
+          )
+        )
+      )
+    ),
+    Let ("map",
+      Fix ("map",
+        Abs ("f",
+          Abs ("l",
+            IfEmpty (Var "l",
+              Nil,
+              Cons (
+                App (Var "f", Head (Var "l")), 
+                App (App (Var "map", Var "f"), Tail (Var "l"))
+              )
+            )
+          )
+        )
+      ),
+      Let ("is_even", 
+        Fix ("is_even",  
+          Abs ("x", 
+            IfZero (Var "x", 
+              Int 1,  (* Even *)
+              IfZero (Sub (Var "x", Int 1),
+                Int 0,  (* Odd *)
+                App (Var "is_even", Sub (Var "x", Int 2))
+              )
+            )
+          )
+        ),
+        App (
+          App (Var "map", Var "is_even"),
+          App (
+            App (Var "filter", Var "is_even"),
+            Cons (Int 1, Cons (Int 2, Cons (Int 3, Cons (Int 4, Nil))))
+          )
+        )
+      )
+    )
+  ) in
+  let env = [] in
+  let infer_typered = infer_type term env in
+  print_endline ("Type inféré pour complex filter map: " ^ print_type infer_typered);
+  let expected = TList TNat in
+  assert_bool "Type inféré incorrect pour filter et map"
+    (types_alpha_equal infer_typered expected)
+
+(* -------- PARTIE 5 : Traits impératifs -------- *)
+
+(* Test de l'inférence de type pour Unit *)
+let test_unit_type _ctxt =
+  let term = Unit in
+  let env = [] in
+  let infer_typered = infer_type term env in
+  let expected = TUnit in
+  assert_bool "Type inféré incorrect pour Unit" 
+    (types_alpha_equal infer_typered expected)
+
+let test_unit_complex_type _ctxt =
+  let term = Let ("f", Abs ("x", Unit), Unit) in
+  let env = [] in
+  let infer_typered = infer_type term env in
+  let expected = TUnit in
+  assert_bool "Type inféré incorrect pour Unit" 
+    (types_alpha_equal infer_typered expected)
+
+
+(* Test de l'inférence de type pour Ref T *)
+let test_ref_type _ctxt =
+  let term = Ref (Int 42) in
+  let env = [] in
+  let infer_typered = infer_type term env in
+  let expected = TRef TNat in
+  assert_bool "Type inféré incorrect pour Ref TNat" 
+    (types_alpha_equal infer_typered expected)
+
+let test_ref_complex_type _ctxt =
+  let term = Let ("x", Ref (Int 42), Deref (Var "x")) in
+  let env = [] in
+  let infer_typered = infer_type term env in
+  let expected = TNat in
+  assert_bool "Type inféré incorrect pour Ref TNat" 
+    (types_alpha_equal infer_typered expected)
+
+
+(* Test de l'inférence de type pour Deref *)
+let test_deref_type _ctxt =
+  let term = Deref (Ref (Int 42)) in
+  let env = [] in
+  let infer_typered = infer_type term env in
+  let expected = TNat in
+  assert_bool "Type inféré incorrect pour Deref" 
+    (types_alpha_equal infer_typered expected)
+
+let test_deref_complex_type _ctxt =
+  let term = Let ("x", Ref (Int 42), Deref (Var "x")) in
+  let env = [] in
+  let infer_typered = infer_type term env in
+  let expected = TNat in
+  assert_bool "Type inféré incorrect pour Deref" 
+    (types_alpha_equal infer_typered expected)
+
+(* un test encore plus compelexe utilisant les listes *)
+let test_deref_more_complex_type _ctxt =
+  let term = Let ("x", Ref (Cons (Int 1, Nil)), Deref (Var "x")) in
+  let env = [] in
+  let infer_typered = infer_type term env in
+  let expected = TList TNat in
+  assert_bool "Type inféré incorrect pour Deref" 
+    (types_alpha_equal infer_typered expected)
+
+
+(* Test de l'inférence de type pour Assign *)
+let test_assign_type _ctxt =
+  let term = Assign (Ref (Int 0), Int 42) in
+  let env = [] in
+  let infer_typered = infer_type term env in
+  let expected = TUnit in
+  assert_bool "Type inféré incorrect pour Assign" 
+    (types_alpha_equal infer_typered expected)
+
+let test_assign_complex_type _ctxt =
+  let term = Let ("x", Ref (Int 0), Assign (Var "x", Int 42)) in
+  let env = [] in
+  let infer_typered = infer_type term env in
+  let expected = TUnit in
+  assert_bool "Type inféré incorrect pour Assign" 
+    (types_alpha_equal infer_typered expected)
+
+
 
 (* Suite de tests *)
 let typing_tests =
@@ -186,14 +355,35 @@ let typing_tests =
     "test_list_type" >:: test_list_type;
     "test_polymorphic_identity" >:: test_polymorphic_identity;
     "test_LET" >:: test_LET;
-
-    
-    (***** DOESN4T PASS *)
     "test_head_type" >:: test_head_type;
     "test_map_polymorphic" >:: test_map_polymorphic;
     "test_factorial_type" >:: test_factorial_type;
+    "test_polymorphic_fibonacci" >:: test_polymorphic_fibonacci;
+    "test_complex_filter_map" >:: test_complex_filter_map;
+]
+
+
+(* Suite de tests pour les traits impératifs *)
+let tests_imperative_traits = 
+  "imperative traits tests" >::: [
+    "test_ref_type" >:: test_ref_type;
+    "test_deref_type" >:: test_deref_type;
+    "test_assign_type" >:: test_assign_type;
+    "test_unit_type" >:: test_unit_type;
+    "test_unit_complex_type" >:: test_unit_complex_type;
+    "test_ref_complex_type" >:: test_ref_complex_type;
+    "test_deref_complex_type" >:: test_deref_complex_type;
+    "test_assign_complex_type" >:: test_assign_complex_type;
+    "test_deref_more_complex_type" >:: test_deref_more_complex_type;
+  ]
+
+(* Combine the test suites *)
+let combined_suites =
+  "All Tests" >::: [
+    typing_tests;
+    tests_imperative_traits;
   ]
 
 (* Exécution des tests *)
 let () =
-  run_test_tt_main typing_tests
+  run_test_tt_main combined_suites

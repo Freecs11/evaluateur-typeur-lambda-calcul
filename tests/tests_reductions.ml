@@ -137,7 +137,93 @@ let test_s_term_normalization _ctxt =
 
 
 
+(* Test de la création de référence *)
+let test_ref_term_normalization _ =
+  Hashtbl.reset region_state;  (* Réinitialisation de l'état *)
+  let term = Ref (Int 42) in
+  (* Après réduction, on devrait obtenir une région *)
+  let result = ltr_cbv_norm term in
+  match result with
+  | Region id ->
+      (* Vérifier que la région contient bien la valeur 42 *)
+      let value_in_region = Hashtbl.find region_state id in
+      Printf.printf "Ref test result: %s\n" (print_term value_in_region);
+      assert_equal ~printer:print_term (Int 42) value_in_region
+  | _ -> assert_failure "Ref n'a pas été réduit en une région"
 
+let test_ref_complex_term_normalization _ =
+  Hashtbl.reset region_state; 
+  let term =
+    Let ("r", Ref (Int 42),
+      Var "r"
+    ) in
+  let result = ltr_cbv_norm term in
+  match result with
+  | Region id ->
+      (* Vérifier que la région contient bien la valeur 42 *)
+      let value_in_region = Hashtbl.find region_state id in
+      Printf.printf "Ref complex test result: %s\n" (print_term value_in_region);
+      assert_equal ~printer:print_term (Int 42) value_in_region
+  | _ -> assert_failure "Ref complex n'a pas été réduit en une région"
+
+(* Test du déréférencement *)
+let test_deref_term_normalization _ =
+  Hashtbl.reset region_state;  
+  let term = Deref (Ref (Int 42)) in (* !ref 42 *)
+  let result = ltr_cbv_norm term in
+  Printf.printf "Deref test result: %s\n" (print_term result);
+  assert_equal ~printer:print_term (Int 42) result
+
+(* Test du déréférencement d'un terme complexe, on fait un let r = ref 42 in !r *)
+let test_deref_complex_term_normalization _ =
+  Hashtbl.reset region_state;  
+  let term =
+    Let ("r", Ref (Int 42),
+      Deref (Var "r")
+    ) in
+  let result = ltr_cbv_norm term in
+  Printf.printf "Deref complex test result: %s\n" (print_term result);
+  assert_equal ~printer:print_term (Int 42) result
+
+(* Test de l'assignation *)
+let test_assign_term_normalization _ =
+  Hashtbl.reset region_state;  
+  let term =
+    Let ("r", Ref (Int 0),
+      Let ("_", Assign (Var "r", Int 42),
+        Deref (Var "r")
+      )
+    ) in
+  let result = ltr_cbv_norm term in
+  Printf.printf "Assign test result: %s\n" (print_term result);
+  assert_equal ~printer:print_term (Int 42) result
+
+(* Test de l'assignation, on fait 2 assignations du même emplacement *)
+let test_assign_complex_term_normalization _ =
+  Hashtbl.reset region_state;  
+  let term =
+    Let ("r", Ref (Int 0),
+      Let ("_", Assign (Var "r", Int 42),
+        Let ("_", Assign (Var "r", Int 43),
+          Deref (Var "r")
+        )
+      )
+    ) in
+  let result = ltr_cbv_norm term in
+  Printf.printf "Assign complex test result: %s\n" (print_term result);
+  assert_equal ~printer:print_term (Int 43) result
+
+(* Test suite *)
+
+let imperative_traits_tests =
+  "Imperative Traits Tests" >::: [
+    "test_ref_term_normalization" >:: test_ref_term_normalization;
+    "test_ref_complex_term_normalization" >:: test_ref_complex_term_normalization;
+    "test_deref_term_normalization" >:: test_deref_term_normalization;
+    "test_deref_complex_term_normalization" >:: test_deref_complex_term_normalization;
+    "test_assign_term_normalization" >:: test_assign_term_normalization;
+    "test_assign_complex_term_normalization" >:: test_assign_complex_term_normalization;
+  ]
 
 (* Test suite *)
 let normalization_tests =
@@ -170,6 +256,7 @@ let combined_suites =
   "All Tests" >::: [
     ltr_cbv_tests;
     normalization_tests;
+    imperative_traits_tests;
   ]
 
 (* Run the combined test suite *)

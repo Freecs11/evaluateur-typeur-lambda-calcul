@@ -7,13 +7,21 @@ type pterm =
   | Add of pterm * pterm
   | Sub of pterm * pterm
   | Nil
-  | Cons of pterm * pterm
+  | Cons of pterm * pterm (* listes *)
   | Head of pterm
   | Tail of pterm
-  | IfZero of pterm * pterm * pterm
-  | IfEmpty of pterm * pterm * pterm
-  | Fix of string * pterm
+  | IfZero of pterm * pterm * pterm 
+  | IfEmpty of pterm * pterm * pterm 
+  | Fix of string * pterm (* récursion *)
   | Let of string * pterm * pterm
+  (* Partie 5 *)
+  | Unit
+  | Ref of pterm        (* ref e *)
+  | Deref of pterm        (* !e *)
+  | Assign of pterm * pterm (* e1 := e2 *)
+  | Region of int         
+
+
 
 
 let rec print_term (t : pterm) : string =
@@ -32,6 +40,11 @@ let rec print_term (t : pterm) : string =
   | IfEmpty (t1, t2, t3) -> "IfEmpty(" ^ (print_term t1) ^ ", " ^ (print_term t2) ^ ", " ^ (print_term t3) ^ ")"
   | Fix (phi, t1) -> "Fix(" ^ phi ^ ", " ^ (print_term t1) ^ ")"
   | Let (x, e1, e2) -> "Let(" ^ x ^ ", " ^ (print_term e1) ^ ", " ^ (print_term e2) ^ ")"
+  | Unit -> "()"
+  | Ref t -> "(ref " ^ print_term t ^ ")"
+  | Deref t -> "(!" ^ print_term t ^ ")"
+  | Assign (t1, t2) -> "(" ^ print_term t1 ^ " := " ^ print_term t2 ^ ")"
+  | Region id -> "ρ" ^ string_of_int id
 
 
 let compteur_var : int ref = ref 0
@@ -41,6 +54,7 @@ let compteur_var : int ref = ref 0
 let nouvelle_var () : string =
   compteur_var := !compteur_var + 1;
   "X" ^ (string_of_int !compteur_var)
+
 
 
 (* récupère les variables libres d'un terme *)
@@ -60,6 +74,11 @@ let rec free_vars (t: pterm) : string list =
   | IfEmpty (t1, t2, t3) -> (free_vars t1) @ (free_vars t2) @ (free_vars t3)
   | Fix (phi, t1) -> List.filter (fun y -> y <> phi) (free_vars t1)
   | Let (x, e1, e2) -> (free_vars e1) @ (List.filter (fun y -> y <> x) (free_vars e2))
+  | Unit -> []
+  | Ref t -> free_vars t
+  | Deref t -> free_vars t
+  | Assign (t1, t2) -> (free_vars t1) @ (free_vars t2)
+  | Region _ -> []
 
 
 (* Substitution & logging pour les tests*)
@@ -89,7 +108,7 @@ let rec substitution (x : string) (n: pterm) (t : pterm) : pterm =
   | IfZero (t1, t2, t3) -> IfZero (substitution x n t1, substitution x n t2, substitution x n t3)
   | IfEmpty (t1, t2, t3) -> IfEmpty (substitution x n t1, substitution x n t2, substitution x n t3)
   | Fix (phi, t1) ->
-      if x = phi then Fix (phi, t1)
+      if x = phi then Fix (phi, t1) 
       else if List.mem phi (free_vars n) then
         let new_var = nouvelle_var () in
         let t' = substitution phi (Var new_var) t1 in
@@ -102,6 +121,12 @@ let rec substitution (x : string) (n: pterm) (t : pterm) : pterm =
         let e2' = substitution y (Var new_var) e2 in
         Let (new_var, substitution x n e1, substitution x n e2')
       else Let (y, substitution x n e1, substitution x n e2)
+  | Unit -> t
+  | Ref t -> Ref (substitution x n t)
+  | Deref t -> Deref (substitution x n t)
+  | Assign (t1, t2) -> Assign (substitution x n t1, substitution x n t2)
+  | Region _ -> t
+
 
 
 (* Alpha-conversion: renomme les variables liées pour éviter les conflits *)
@@ -131,6 +156,12 @@ let rec alphaconv (t : pterm) : pterm =
         Let (new_var, e1', substitution x (Var new_var) (alphaconv e2))
       else
         Let (x, e1', alphaconv e2)
+  | Unit -> t
+  | Ref t -> Ref (alphaconv t)
+  | Deref t -> Deref (alphaconv t)
+  | Assign (t1, t2) -> Assign (alphaconv t1, alphaconv t2)
+  | Region _ -> t
+
 
 
 (* Alpha-equivalence Equivalence structurelle des termes lambda *)
@@ -168,6 +199,12 @@ let alpha_equal t1 t2 =
     | Let (x1, e1, e2), Let (x2, e1', e2') ->
         let new_env = (x1, x2) :: env in
         alpha_eq env e1 e1' && alpha_eq new_env e2 e2'
+    | Unit, Unit -> true
+    | Ref t1', Ref t2' -> alpha_eq env t1' t2'
+    | Deref t1', Deref t2' -> alpha_eq env t1' t2'
+    | Assign (t1a, t1b), Assign (t2a, t2b) ->
+        alpha_eq env t1a t2a && alpha_eq env t1b t2b
+    | Region id1, Region id2 -> id1 = id2
     | _ -> false
   in
   alpha_eq [] t1 t2
